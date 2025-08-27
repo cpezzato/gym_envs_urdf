@@ -101,6 +101,15 @@ class HolonomicRobot(GenericRobot):
                 controlMode=p.VELOCITY_CONTROL,
                 targetVelocity=vels[i],
             )
+    
+    def apply_position_action(self, positions: np.ndarray) -> None:
+        for i in range(self._n):
+            p.setJointMotorControl2(
+                bodyUniqueId=self._robot,
+                jointIndex=self._robot_joints[i],
+                controlMode=p.POSITION_CONTROL,
+                targetPosition=positions[i],
+            )
 
     def apply_acceleration_action(self, accs: np.ndarray, dt: float) -> None:
         self._integrated_velocities += dt * accs

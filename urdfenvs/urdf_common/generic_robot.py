@@ -15,7 +15,7 @@ class ControlMode(Enum):
     torque = "tor"
     acceleration = "acc"
     velocity = "vel"
-
+    position = "pos"
 
 class GenericRobot(ABC):
     """GenericRobot."""
@@ -202,6 +202,15 @@ class GenericRobot(ABC):
         aspace = gym.spaces.Box(low=ul, high=uu, dtype=float)
         return (ospace, aspace)
 
+    def get_position_spaces(self) -> tuple:
+        """Get observation space and action space when using position
+        control."""
+        ospace = self.get_observation_space()
+        uu = self._limit_pos_j[1, :]
+        ul = self._limit_pos_j[0, :]
+        aspace = gym.spaces.Box(low=ul, high=uu, dtype=float)
+        return (ospace, aspace)
+
     def get_acceleration_spaces(self) -> tuple:
         """Get observation space and action space when using acceleration
         control."""
@@ -240,6 +249,10 @@ class GenericRobot(ABC):
     def apply_acceleration_action(self, accs) -> None:
         pass
 
+    @abstractmethod
+    def apply_position_action(self, pos) -> None:
+        pass
+
     def apply_action(self, action, dt=None) -> None:
         if self._mode == ControlMode.torque:
             self.apply_torque_action(action)
@@ -247,6 +260,8 @@ class GenericRobot(ABC):
             self.apply_velocity_action(action)
         elif self._mode == ControlMode.acceleration:
             self.apply_acceleration_action(action, dt)
+        elif self._mode == ControlMode.position:
+            self.apply_position_action(action)
         else:
             raise Exception(f"ControlMode {self._mode} not implemented")
 
@@ -257,6 +272,8 @@ class GenericRobot(ABC):
             return self.get_velocity_spaces()
         elif self._mode == ControlMode.acceleration:
             return self.get_acceleration_spaces()
+        elif self._mode == ControlMode.position:
+            return self.get_position_spaces()
         else:
             raise Exception(f"ControlMode {self._mode} not implemented")
 
