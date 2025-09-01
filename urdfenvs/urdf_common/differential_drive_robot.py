@@ -281,6 +281,17 @@ ignored for differential drive robots."
                 controlMode=p.VELOCITY_CONTROL,
                 targetVelocity=vels[i],
             )
+    
+    def apply_position_action(self, action: np.ndarray) -> None:
+        """Applies angular velocities to the wheels and position control to the arm joints."""
+        self.apply_base_velocity(action)
+        for i in range(2, self._n):
+            p.setJointMotorControl2(
+                bodyUniqueId=self._robot,
+                jointIndex=self._robot_joints[i],
+                controlMode=p.POSITION_CONTROL,
+                targetPosition=action[i],
+            )
 
     def correct_base_orientation(self, pos_base: np.ndarray) -> np.ndarray:
         """Corrects base orientation by -pi.

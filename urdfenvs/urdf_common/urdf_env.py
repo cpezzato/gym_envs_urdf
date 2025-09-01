@@ -77,7 +77,7 @@ class UrdfEnv(gym.Env):
 
     def connect_physics_engine(self):
         if self._render:
-            self._cid = pybullet.connect(pybullet.GUI)
+            self._cid = pybullet.connect(pybullet.GUI, options="--width=1920 --height=1800")
             pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_GUI, 0)
         else:
             self._cid = pybullet.connect(pybullet.DIRECT)
