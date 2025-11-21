@@ -263,7 +263,6 @@ class UrdfEnv(gym.Env):
         observation = {}
         for i, robot in enumerate(self._robots):
             obs = robot.get_observation(self._obsts, self._goals, self.t())
-
             observation[f"robot_{i}"] = obs
         if hasattr(self, "observation_space"):
             if (
@@ -276,6 +275,18 @@ class UrdfEnv(gym.Env):
                     self._done = True
                     self._info = {"observation_limits": str(e)}
         return observation
+    
+    def get_link_state(self, link_index: int):
+        all_link_states = []
+        for robot in self._robots:
+            robot_link_states = []
+            
+            link_state = pybullet.getLinkState(robot._robot, link_index)
+            link_pos = link_state[0]
+            link_ori = link_state[1]
+            robot_link_states.append(np.concatenate([link_pos, link_ori]))
+            all_link_states.append(np.array(robot_link_states))
+        return all_link_states
 
     def shuffle_obstacles(self) -> dict:
         obstacle_dict = {}

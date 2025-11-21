@@ -17,12 +17,19 @@ class HolonomicRobot(GenericRobot):
 
         if hasattr(self, "_robot"):
             p.removeBody(self._robot)
+        # If there are wheels in the urdf file do not use fixed base
+        for joint in self._urdf_robot._actuated_joints:
+            if "wheel" in joint.name:
+                use_fixed_base = False
+                break
+            else:
+                use_fixed_base = True
         self._robot = p.loadURDF(
             fileName=self._urdf_file,
             basePosition=mount_position.tolist(),
             baseOrientation=mount_orientation.tolist(),
             flags=p.URDF_USE_SELF_COLLISION_EXCLUDE_PARENT,
-            useFixedBase=True,
+            useFixedBase=use_fixed_base,
         )
         self.set_joint_names()
         self.extract_joint_ids()
@@ -47,12 +54,12 @@ class HolonomicRobot(GenericRobot):
         self._limit_acc_j = np.zeros((2, self._n))
         for i, j in enumerate(self._urdf_joints):
             joint = self._urdf_robot.robot.joints[j]
-            self._limit_pos_j[0, i] = joint.limit.lower
-            self._limit_pos_j[1, i] = joint.limit.upper
-            self._limit_vel_j[0, i] = -joint.limit.velocity
-            self._limit_vel_j[1, i] = joint.limit.velocity
-            self._limit_tor_j[0, i] = -joint.limit.effort
-            self._limit_tor_j[1, i] = joint.limit.effort
+            self._limit_pos_j[0, i] = -10e6 if joint.limit is None else joint.limit.lower
+            self._limit_pos_j[1, i] = 10e6 if joint.limit is None else joint.limit.upper
+            self._limit_vel_j[0, i] = -10e6 if joint.limit is None else -joint.limit.velocity
+            self._limit_vel_j[1, i] = 10e6 if joint.limit is None else joint.limit.velocity
+            self._limit_tor_j[0, i] = -10e6 if joint.limit is None else -joint.limit.effort
+            self._limit_tor_j[1, i] = 10e6 if joint.limit is None else joint.limit.effort
         self.set_acceleration_limits()
 
     def get_observation_space(self) -> gym.spaces.Dict:
